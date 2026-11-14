@@ -43,8 +43,13 @@ frontend/build/
 backend/data/*.json
 backend/data/*.csv
 backend/data/*.xlsx
+backend/data/*.pkl
 !backend/data/Sample-Data.xlsx
+!backend/data/demo_tickets.xlsx
 !backend/data/.gitkeep
+
+# Pytest
+.pytest_cache/
 
 # Test coverage
 coverage/

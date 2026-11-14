@@ -1,19 +1,42 @@
 """
 Metrics tracking for RAG service
 """
+import threading
 import time
-from collections import defaultdict
-from typing import Dict, List, Any
+from collections import Counter, defaultdict
+from typing import Any, Dict
 import statistics
 class MetricsTracker:
     """Track performance and quality metrics for the RAG service"""
     def __init__(self):
+        self._lock = threading.Lock()  # endpoints run in a thread pool
         self.queries = []
         self.response_times = []
         self.confidence_scores = []
         self.category_counts = defaultdict(int)
         self.error_count = 0
         self.success_count = 0
+        self.feedback = []
+    def record_feedback(self, ticket_id: str, feedback: str, helpful=None):
+        """Store user feedback on a suggested resolution"""
+        with self._lock:
+            self.feedback.append(
+                {
+                    "ticket_id": ticket_id,
+                    "feedback": feedback,
+                    "helpful": helpful,
+                    "timestamp": time.time(),
+                }
+            )
+    def get_feedback_summary(self) -> Dict[str, Any]:
+        rated = [f for f in self.feedback if f["helpful"] is not None]
+        helpful = sum(1 for f in rated if f["helpful"])
+        return {
+            "total": len(self.feedback),
+            "helpful": helpful,
+            "not_helpful": len(rated) - helpful,
+            "helpful_rate": helpful / len(rated) if rated else None,
+        }
     def record_query(
         self,
         category: str,
@@ -22,6 +45,10 @@ class MetricsTracker:
         success: bool = True,
     ):
         """Record a query with its metrics"""
+        with self._lock:
+            self._record_query(category, response_time, confidence, success)
+
+    def _record_query(self, category, response_time, confidence, success):
         self.queries.append(
             {
                 "category": category,
@@ -39,12 +66,14 @@ class MetricsTracker:
         else:
             self.error_count += 1
     def record_error(self, category: str = "unknown"):
-        """Record an error"""
-        self.error_count += 1
-        self.category_counts[category] += 1
+        """Record a failed request"""
+        with self._lock:
+            self.error_count += 1
+            self.category_counts[category] += 1
     def get_summary(self) -> Dict[str, Any]:
         """Get comprehensive metrics summary"""
-        total_queries = len(self.queries)
+        # Total requests = successful queries + failed requests
+        total_queries = self.success_count + self.error_count
         if total_queries == 0:
             return {
                 "total_queries": 0,
@@ -52,6 +81,7 @@ class MetricsTracker:
                 "avg_response_time": 0,
                 "avg_confidence": 0,
                 "category_distribution": {},
+                "feedback": self.get_feedback_summary(),
             }
         return {
             "total_queries": total_queries,
@@ -80,6 +110,7 @@ class MetricsTracker:
                 "max": max(self.confidence_scores) if self.confidence_scores else 0,
             },
             "category_distribution": dict(self.category_counts),
+            "feedback": self.get_feedback_summary(),
         }
     def get_realtime_stats(self, limit: int = 100) -> Dict[str, Any]:
         """Get real-time stats for the last N queries"""
@@ -98,15 +129,7 @@ class MetricsTracker:
             "avg_confidence": (
                 statistics.mean(recent_confidences) if recent_confidences else 0
             ),
-            "recent_categories": defaultdict(
-                int,
-                {
-                    q["category"]: sum(
-                        1 for x in recent_queries if x["category"] == q["category"]
-                    )
-                    for q in recent_queries
-                },
-            ),
+            "recent_categories": dict(Counter(q["category"] for q in recent_queries)),
         }
     def reset(self):
         """Reset all metrics"""
@@ -116,5 +139,6 @@ class MetricsTracker:
         self.category_counts = defaultdict(int)
         self.error_count = 0
         self.success_count = 0
+        self.feedback = []
 # Global metrics tracker instance
 metrics_tracker = MetricsTracker()

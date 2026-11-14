@@ -1,0 +1,128 @@
+.history-page,
+.ticket-detail-page {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem;
+}
+
+.history-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.history-subtitle {
+  opacity: 0.7;
+  margin: 0.25rem 0 1.5rem;
+}
+
+.history-clear,
+.feedback-buttons button,
+.feedback-form button {
+  border: 1px solid currentColor;
+  background: transparent;
+  color: inherit;
+  border-radius: 8px;
+  padding: 0.45rem 0.9rem;
+  cursor: pointer;
+  font: inherit;
+}
+
+.feedback-buttons button.selected {
+  background: #6366f1;
+  border-color: #6366f1;
+  color: #fff;
+}
+
+.history-empty {
+  padding: 2rem;
+  text-align: center;
+  border: 1px dashed rgba(127, 127, 127, 0.4);
+  border-radius: 12px;
+}
+
+.history-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.92rem;
+}
+
+.history-table th,
+.history-table td {
+  text-align: left;
+  padding: 0.65rem 0.6rem;
+  border-bottom: 1px solid rgba(127, 127, 127, 0.25);
+  vertical-align: top;
+}
+
+.history-table th {
+  font-weight: 600;
+  opacity: 0.8;
+}
+
+.history-description {
+  max-width: 360px;
+}
+
+/* Keep short columns (ID, date, category, priority, match, feedback) on one line */
+.history-table td:not(.history-description) {
+  white-space: nowrap;
+}
+
+.priority-tag {
+  display: inline-block;
+  padding: 0.1rem 0.5rem;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  background: rgba(99, 102, 241, 0.15);
+}
+
+.priority-tag.high,
+.priority-tag.critical {
+  background: rgba(239, 68, 68, 0.18);
+}
+
+.priority-tag.low {
+  background: rgba(16, 185, 129, 0.18);
+}
+
+.detail-card {
+  border: 1px solid rgba(127, 127, 127, 0.25);
+  border-radius: 12px;
+  padding: 1.25rem 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.detail-meta {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.detail-meta span {
+  display: block;
+  font-size: 0.8rem;
+  opacity: 0.65;
+}
+
+.feedback-buttons {
+  display: flex;
+  gap: 0.75rem;
+  margin: 0.75rem 0 1rem;
+}
+
+.feedback-form textarea {
+  display: block;
+  width: 100%;
+  min-height: 80px;
+  margin: 0.5rem 0 0.75rem;
+  padding: 0.6rem;
+  border-radius: 8px;
+  font: inherit;
+}
+
+.feedback-status {
+  margin-top: 0.75rem;
+}

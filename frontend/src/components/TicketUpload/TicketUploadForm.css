@@ -422,6 +422,12 @@
   }
 }
 /* Resolution Container - Combined */
+/* Links inside the purple result panel (e.g. Ticket ID) must stay readable */
+.resolution-container a {
+  color: #ffffff;
+  text-decoration: underline;
+  font-weight: 600;
+}
 .resolution-container {
   margin-top: 2rem;
   padding: 1.5rem;
@@ -666,8 +672,8 @@
 .confidence-badge {
   margin-left: auto;
   padding: 0.25rem 0.75rem;
-  background: rgba(16, 185, 129, 0.2);
-  color: #10b981;
+  background: #ffffff;
+  color: #047857;
   border-radius: 1rem;
   font-size: 0.875rem;
   font-weight: 600;
@@ -731,8 +737,8 @@
 }
 .similarity-score {
   padding: 0.25rem 0.75rem;
-  background: rgba(16, 185, 129, 0.3);
-  color: #10b981;
+  background: #ffffff;
+  color: #047857;
   border-radius: 0.5rem;
   font-size: 0.75rem;
   font-weight: 600;

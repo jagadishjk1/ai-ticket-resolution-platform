@@ -1,48 +1,77 @@
 import { type Ticket } from "../types/ticketTypes";
+
+/**
+ * Ticket storage.
+ *
+ * The RAG service only suggests resolutions; it does not store tickets.
+ * Submitted tickets are therefore kept in the browser's localStorage so the
+ * History and Ticket Detail pages can show them during a demo.
+ */
+const STORAGE_KEY = "ticketgenie.tickets";
+const PRIORITIES: Ticket["priority"][] = ["Low", "Medium", "High", "Critical"];
+
+function readAll(): Ticket[] {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    const parsed = raw ? JSON.parse(raw) : [];
+    return Array.isArray(parsed) ? (parsed as Ticket[]) : [];
+  } catch {
+    return [];
+  }
+}
+
+function writeAll(tickets: Ticket[]): void {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(tickets));
+  } catch {
+    // Storage full or unavailable (e.g. private mode) - history is optional.
+  }
+}
+
 export async function uploadTicket(data: FormData): Promise<Ticket> {
-  const description = data.get("description") as string;
-  const category = data.get("category") as string;
-  // Process ticket locally - no backend needed
-  console.log(
-    "%c📤 Processing Ticket",
-    "background: #6366f1; color: white; padding: 4px 8px; border-radius: 4px; font-weight: bold"
-  );
-  console.log("Category:", category);
-  console.log("Description:", description);
-  // Simulate processing delay
-  await new Promise((resolve) => setTimeout(resolve, 1000));
-  // Create mock ticket response
-  const mockTicket: Ticket = {
+  const description = ((data.get("description") as string) || "").trim();
+  const category = ((data.get("category") as string) || "").trim();
+  const priority = data.get("priority") as Ticket["priority"];
+
+  const ticket: Ticket = {
     ticketId: `T${Date.now()}`,
     category: category || "General",
     description: description || "No description provided",
     resolution: "",
     sop: "",
-    priority: "Medium",
+    priority: PRIORITIES.includes(priority) ? priority : "Medium",
     status: "Open",
     createdDate: new Date().toISOString(),
   };
-  console.log(
-    "%c✅ Ticket Created",
-    "background: #10b981; color: white; padding: 4px 8px; border-radius: 4px; font-weight: bold"
-  );
-  console.log("Ticket:", mockTicket);
-  return mockTicket;
+  writeAll([ticket, ...readAll()]);
+  return ticket;
 }
-export async function getTicket(id: string): Promise<Ticket> {
-  // Mock implementation - no backend needed
-  return {
-    ticketId: id,
-    category: "General",
-    description: "Mock ticket",
-    resolution: "",
-    sop: "",
-    priority: "Medium",
-    status: "Open",
-    createdDate: new Date().toISOString(),
-  };
+
+/** Save changes to a stored ticket (e.g. the suggested resolution or feedback). */
+export async function saveTicket(ticket: Ticket): Promise<Ticket> {
+  const tickets = readAll();
+  const index = tickets.findIndex((t) => t.ticketId === ticket.ticketId);
+  if (index >= 0) {
+    tickets[index] = ticket;
+  } else {
+    tickets.unshift(ticket);
+  }
+  writeAll(tickets);
+  return ticket;
 }
+
+export async function getTicket(id: string): Promise<Ticket | null> {
+  return readAll().find((t) => t.ticketId === id) ?? null;
+}
+
+/** All stored tickets, newest first. */
 export async function getAllTickets(): Promise<Ticket[]> {
-  // Return empty array - no backend needed
-  return [];
+  return readAll().sort(
+    (a, b) =>
+      new Date(b.createdDate).getTime() - new Date(a.createdDate).getTime()
+  );
+}
+
+export async function clearTickets(): Promise<void> {
+  writeAll([]);
 }

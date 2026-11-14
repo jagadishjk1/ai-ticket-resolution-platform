@@ -1,138 +1,95 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
-import { uploadTicket, getTicket, getAllTickets } from "./ticketApi";
-// Mock console methods
-vi.mock("console", () => ({
-  log: vi.fn(),
-  error: vi.fn(),
-}));
-describe("ticketApi", () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
+import { describe, it, expect, beforeEach } from "vitest";
+import {
+  uploadTicket,
+  getTicket,
+  getAllTickets,
+  saveTicket,
+  clearTickets,
+} from "./ticketApi";
+
+function form(fields: Record<string, string>): FormData {
+  const data = new FormData();
+  Object.entries(fields).forEach(([k, v]) => data.append(k, v));
+  return data;
+}
+
+describe("ticketApi (localStorage history)", () => {
+  beforeEach(async () => {
+    localStorage.clear();
+    await clearTickets();
   });
+
   describe("uploadTicket", () => {
-    it("should upload ticket with file and description", async () => {
-      const formData = new FormData();
-      const file = new File(["content"], "test.pdf", {
-        type: "application/pdf",
-      });
-      formData.append("file", file);
-      formData.append("description", "Test description");
-      formData.append("category", "Software");
-      const result = await uploadTicket(formData);
-      expect(result).toBeDefined();
-      expect(result.ticketId).toBeDefined();
+    it("creates an open ticket with the submitted values", async () => {
+      const result = await uploadTicket(
+        form({ description: "VPN drops", category: "VPN Access", priority: "High" })
+      );
       expect(result.ticketId).toMatch(/^T\d+$/);
-      expect(result.category).toBe("Software");
-      expect(result.description).toBe("Test description");
+      expect(result.category).toBe("VPN Access");
+      expect(result.description).toBe("VPN drops");
+      expect(result.priority).toBe("High");
       expect(result.status).toBe("Open");
-      expect(result.priority).toBe("Medium");
+      expect(result.resolution).toBe("");
+      expect(result.sop).toBe("");
     });
-    it("should throw error if no file provided", async () => {
-      const formData = new FormData();
-      formData.append("description", "Test description");
-      await expect(uploadTicket(formData)).rejects.toThrow("No file provided");
-    });
-    it("should use default category if not provided", async () => {
-      const formData = new FormData();
-      const file = new File(["content"], "test.txt", { type: "text/plain" });
-      formData.append("file", file);
-      formData.append("description", "Test");
-      const result = await uploadTicket(formData);
+
+    it("uses defaults for missing or invalid values", async () => {
+      const result = await uploadTicket(form({ priority: "Urgent!!" }));
       expect(result.category).toBe("General");
-    });
-    it("should use default description if not provided", async () => {
-      const formData = new FormData();
-      const file = new File(["content"], "test.txt", { type: "text/plain" });
-      formData.append("file", file);
-      formData.append("category", "Hardware");
-      const result = await uploadTicket(formData);
       expect(result.description).toBe("No description provided");
-    });
-    it("should set createdDate to current date", async () => {
-      const formData = new FormData();
-      const file = new File(["content"], "test.txt", { type: "text/plain" });
-      formData.append("file", file);
-      formData.append("description", "Test");
-      const beforeTime = new Date().getTime();
-      const result = await uploadTicket(formData);
-      const afterTime = new Date().getTime();
-      const ticketTime = new Date(result.createdDate).getTime();
-      expect(ticketTime).toBeGreaterThanOrEqual(beforeTime - 1000);
-      expect(ticketTime).toBeLessThanOrEqual(afterTime + 1000);
-    });
-    it("should initialize with empty resolution and sop", async () => {
-      const formData = new FormData();
-      const file = new File(["content"], "test.txt", { type: "text/plain" });
-      formData.append("file", file);
-      formData.append("description", "Test");
-      const result = await uploadTicket(formData);
-      expect(result.resolution).toBe("");
-      expect(result.sop).toBe("");
-    });
-    it("should handle different file types", async () => {
-      const fileTypes = [
-        { name: "doc.pdf", type: "application/pdf" },
-        { name: "img.png", type: "image/png" },
-        { name: "note.txt", type: "text/plain" },
-      ];
-      for (const fileType of fileTypes) {
-        const formData = new FormData();
-        const file = new File(["content"], fileType.name, {
-          type: fileType.type,
-        });
-        formData.append("file", file);
-        formData.append("description", "Test");
-        const result = await uploadTicket(formData);
-        expect(result).toBeDefined();
-        expect(result.ticketId).toBeDefined();
-      }
-    });
-    it("should simulate processing delay", async () => {
-      const formData = new FormData();
-      const file = new File(["content"], "test.txt", { type: "text/plain" });
-      formData.append("file", file);
-      formData.append("description", "Test");
-      const startTime = Date.now();
-      await uploadTicket(formData);
-      const endTime = Date.now();
-      expect(endTime - startTime).toBeGreaterThanOrEqual(1000);
-    });
-  });
-  describe("getTicket", () => {
-    it("should return ticket by id", async () => {
-      const ticketId = "T123456";
-      const result = await getTicket(ticketId);
-      expect(result).toBeDefined();
-      expect(result.ticketId).toBe(ticketId);
-      expect(result.category).toBe("General");
-      expect(result.status).toBe("Open");
-    });
-    it("should return ticket with default values", async () => {
-      const result = await getTicket("T999");
-      expect(result.description).toBe("Mock ticket");
       expect(result.priority).toBe("Medium");
-      expect(result.resolution).toBe("");
-      expect(result.sop).toBe("");
     });
-    it("should set current date as createdDate", async () => {
-      const result = await getTicket("T123");
-      const ticketDate = new Date(result.createdDate);
-      const now = new Date();
-      expect(ticketDate.getDate()).toBe(now.getDate());
-      expect(ticketDate.getMonth()).toBe(now.getMonth());
-      expect(ticketDate.getFullYear()).toBe(now.getFullYear());
+
+    it("sets createdDate to now", async () => {
+      const before = Date.now();
+      const result = await uploadTicket(form({ description: "Test" }));
+      const created = new Date(result.createdDate).getTime();
+      expect(created).toBeGreaterThanOrEqual(before - 1000);
+      expect(created).toBeLessThanOrEqual(Date.now() + 1000);
+    });
+
+    it("stores the ticket so it appears in history", async () => {
+      const result = await uploadTicket(form({ description: "Stored" }));
+      const all = await getAllTickets();
+      expect(all.map((t) => t.ticketId)).toContain(result.ticketId);
     });
   });
-  describe("getAllTickets", () => {
-    it("should return empty array", async () => {
-      const result = await getAllTickets();
-      expect(result).toBeDefined();
-      expect(Array.isArray(result)).toBe(true);
-      expect(result.length).toBe(0);
+
+  describe("getTicket / saveTicket", () => {
+    it("returns null for an unknown id", async () => {
+      expect(await getTicket("T0")).toBeNull();
     });
-    it("should return array type", async () => {
-      const result = await getAllTickets();
-      expect(result).toBeInstanceOf(Array);
+
+    it("saves the suggested resolution on an existing ticket", async () => {
+      const ticket = await uploadTicket(form({ description: "Printer offline" }));
+      await saveTicket({ ...ticket, suggestedResolution: "Restart spooler", confidence: 0.8 });
+      const loaded = await getTicket(ticket.ticketId);
+      expect(loaded?.suggestedResolution).toBe("Restart spooler");
+      expect(loaded?.confidence).toBe(0.8);
+      expect(await getAllTickets()).toHaveLength(1);
+    });
+  });
+
+  describe("getAllTickets", () => {
+    it("returns an empty array when nothing is stored", async () => {
+      expect(await getAllTickets()).toEqual([]);
+    });
+
+    it("returns newest tickets first", async () => {
+      await saveTicket({
+        ticketId: "T1", category: "A", description: "old", resolution: "", sop: "",
+        priority: "Low", status: "Open", createdDate: "2026-01-01T00:00:00Z",
+      });
+      await saveTicket({
+        ticketId: "T2", category: "A", description: "new", resolution: "", sop: "",
+        priority: "Low", status: "Open", createdDate: "2026-02-01T00:00:00Z",
+      });
+      expect((await getAllTickets()).map((t) => t.ticketId)).toEqual(["T2", "T1"]);
+    });
+
+    it("ignores corrupted storage", async () => {
+      localStorage.setItem("ticketgenie.tickets", "{not json");
+      expect(await getAllTickets()).toEqual([]);
     });
   });
 });

@@ -1,21 +1,14 @@
-# RAG Service Dependencies
-# Web Framework
+# TicketGenie RAG Service - runtime dependencies
+# Web framework
 fastapi==0.115.0
 uvicorn[standard]==0.32.0
-# AI Integration
-python-dotenv==1.0.0
-huggingface_hub>=0.20.0  # Free AI for resolution refinement
-# Vector Search
-faiss-cpu==1.9.0
-numpy==1.26.4
-# Data Processing
-pandas==2.2.0
-openpyxl==3.1.2
-scikit-learn==1.5.2
-tqdm==4.66.4
-# HTTP Client
-httpx==0.28.1
-requests==2.31.0
-# Utilities
 pydantic==2.12.4
- 
+python-dotenv==1.0.0
+# Retrieval (TF-IDF) and data loading
+scikit-learn>=1.5,<2
+numpy>=1.26
+pandas>=2.2,<4
+# pandas 3.x requires openpyxl >= 3.1.5 to read .xlsx files
+openpyxl>=3.1.5
+# AI generation (optional at runtime - app falls back to retrieval-only)
+huggingface_hub>=0.20.0

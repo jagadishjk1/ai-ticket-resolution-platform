@@ -10,7 +10,7 @@ export function useUploadTicket() {
     description: string;
     category?: string;
     priority?: string;
-  }) {
+  }): Promise<Ticket | null> {
     setLoading(true);
     setError("");
     setTicket(null);
@@ -23,11 +23,13 @@ export function useUploadTicket() {
       const result = await uploadTicket(formData);
       setTicket(result);
       setLoading(false);
+      return result;
     } catch (e: unknown) {
       const errorMsg =
         e instanceof Error ? e.message : "Failed to upload ticket";
       setError(errorMsg);
       setLoading(false);
+      return null;
     }
   }
   return { uploadTicket: upload, loading, error, ticket };

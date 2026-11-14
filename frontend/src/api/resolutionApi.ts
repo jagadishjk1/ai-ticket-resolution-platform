@@ -9,11 +9,24 @@ export interface SimilarTicket {
   priority?: string;
   similarity_score: number;
 }
+export interface ResolutionTiming {
+  search_time_ms: number;
+  generation_time_ms: number;
+  total_time_ms: number;
+}
+/**
+ * method values returned by the backend:
+ * - "ai-refined":  AI wrote the answer using similar tickets
+ * - "retrieval":   best matching past resolution (AI not configured or failed)
+ * - "ai-fallback": no similar ticket, AI wrote general guidance
+ * - "no-match":    no similar ticket and no AI - generic next steps
+ */
 export interface ResolutionResponse {
   suggested_resolution: string;
   confidence: number;
   similar_tickets: SimilarTicket[];
   method: string;
+  timing?: ResolutionTiming;
   metadata?: {
     processing_time?: number;
     model_used?: string;
@@ -71,8 +84,17 @@ export async function getResolutionSuggestion(
     if (axios.isAxiosError(error)) {
       console.error("Response Status:", error.response?.status);
       console.error("Response Data:", error.response?.data);
+      const detail = error.response?.data?.detail;
+      // FastAPI validation errors (422) arrive as a list of { msg, loc } objects
+      const detailText = Array.isArray(detail)
+        ? detail
+            .map((d: { msg?: string; loc?: string[] }) =>
+              d?.loc ? `${d.loc[d.loc.length - 1]}: ${d.msg}` : d?.msg
+            )
+            .join("; ")
+        : detail;
       const errorMessage =
-        error.response?.data?.detail ||
+        detailText ||
         error.response?.data?.message ||
         error.message ||
         "Failed to get resolution suggestion";
@@ -98,45 +120,48 @@ export async function checkRAGHealth(): Promise<{
     throw new Error("RAG service is not available");
   }
 }
-/**
- * Get RAG service statistics
- */
-export async function getRAGStats(): Promise<{
+export interface RAGStats {
   total_tickets: number;
-  embedding_dimension: number;
-  top_categories: string[];
+  top_categories: Record<string, number>;
+  ai_available: boolean;
+  dataset: string | null;
   service_status: string;
-}> {
-  try {
-    const endpoint = `${API_CONFIG.RAG_SERVICE_URL}${API_CONFIG.ENDPOINTS.RAG_STATS}`;
-    const response = await axios.get(endpoint);
-    return response.data;
-  } catch (error) {
-    console.error("Failed to get RAG stats:", error);
-    throw error;
-  }
 }
 /**
- * Reload the knowledge base (admin function)
+ * Get knowledge base statistics
  */
-export async function reloadKnowledgeBase(): Promise<{
-  status: string;
-  message: string;
-  total_tickets: number;
-}> {
-  try {
-    const endpoint = `${API_CONFIG.RAG_SERVICE_URL}${API_CONFIG.ENDPOINTS.RAG_RELOAD}`;
-    const response = await axios.post(endpoint);
-    return response.data;
-  } catch (error) {
-    console.error("Failed to reload knowledge base:", error);
-    throw error;
-  }
-}
-// Legacy function for backward compatibility
-export async function getResolutionSuggestionByTicketId(
-  ticketId: string
-): Promise<{ suggestion: string; rationale: string }> {
-  const response = await axios.get(`/api/resolution/${ticketId}`);
+export async function getRAGStats(): Promise<RAGStats> {
+  const endpoint = `${API_CONFIG.RAG_SERVICE_URL}${API_CONFIG.ENDPOINTS.RAG_STATS}`;
+  const response = await axios.get<RAGStats>(endpoint, { timeout: 5000 });
   return response.data;
+}
+export interface RAGMetrics {
+  total_queries: number;
+  success_rate: number;
+  response_times?: { avg: number; min: number; max: number; median: number };
+  confidence_scores?: { avg: number; min: number; max: number };
+  feedback?: {
+    total: number;
+    helpful: number;
+    not_helpful: number;
+    helpful_rate: number | null;
+  };
+}
+/**
+ * Get live performance metrics (since the service started)
+ */
+export async function getRAGMetrics(): Promise<RAGMetrics> {
+  const endpoint = `${API_CONFIG.RAG_SERVICE_URL}${API_CONFIG.ENDPOINTS.RAG_METRICS}`;
+  const response = await axios.get<RAGMetrics>(endpoint, { timeout: 5000 });
+  return response.data;
+}
+/**
+ * Get ticket categories known to the knowledge base
+ */
+export async function getCategories(): Promise<string[]> {
+  const endpoint = `${API_CONFIG.RAG_SERVICE_URL}${API_CONFIG.ENDPOINTS.CATEGORIES}`;
+  const response = await axios.get<{ categories: string[] }>(endpoint, {
+    timeout: 5000,
+  });
+  return Array.isArray(response.data?.categories) ? response.data.categories : [];
 }

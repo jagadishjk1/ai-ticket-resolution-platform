@@ -8,6 +8,7 @@ export function useResolutionSuggestion() {
   const [suggestion, setSuggestion] = useState("");
   const [rationale, setRationale] = useState("");
   const [confidence, setConfidence] = useState(0);
+  const [method, setMethod] = useState("");
   const [similarTickets, setSimilarTickets] = useState<SimilarTicket[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -21,6 +22,7 @@ export function useResolutionSuggestion() {
     setSuggestion("");
     setRationale("");
     setConfidence(0);
+    setMethod("");
     setSimilarTickets([]);
     try {
       const response: ResolutionResponse = await getResolutionSuggestion(
@@ -30,6 +32,7 @@ export function useResolutionSuggestion() {
       );
       setSuggestion(response.suggested_resolution);
       setConfidence(response.confidence);
+      setMethod(response.method);
       setSimilarTickets(response.similar_tickets);
       // Set rationale based on method and metadata
       const rationale =
@@ -70,6 +73,7 @@ export function useResolutionSuggestion() {
     suggestion,
     rationale,
     confidence,
+    method,
     similarTickets,
     loading,
     error,

@@ -28,7 +28,7 @@ describe("App", () => {
   it("should render footer", () => {
     render(<App />);
     expect(screen.getByText(/AI-Powered IT Support/i)).toBeInTheDocument();
-    expect(screen.getByText(/2025/i)).toBeInTheDocument();
+    expect(screen.getByText(/2026/i)).toBeInTheDocument();
   });
   it("should render dashboard page by default", () => {
     render(<App />);
