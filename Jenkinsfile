@@ -19,6 +19,7 @@ pipeline {
             steps {
                 sh 'python --version'
                 sh 'pwd && ls'
+                sh 'sleep 60'
             }
         }
 
