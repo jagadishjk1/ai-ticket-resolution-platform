@@ -18,7 +18,7 @@ pipeline {
             }
             steps {
                 sh '''
-                    pwd && ls
+                    pwd && ls -l
                     cd backend
                     python -m venv .venv
                     . .venv/bin/activate
