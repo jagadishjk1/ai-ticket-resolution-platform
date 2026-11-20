@@ -17,9 +17,15 @@ pipeline {
                 docker { image 'python:3.11-slim' }
             }
             steps {
-                sh 'python --version'
-                sh 'pwd && ls'
-                sh 'sleep 60'
+                sh '''
+                    pwd && ls
+                    cd backend
+                    python -m venv .venv
+                    . .venv/bin/activate
+                    pip install --upgrade pip
+                    pip install -r requirements-dev.txt
+                    pip list
+                '''
             }
         }
 
