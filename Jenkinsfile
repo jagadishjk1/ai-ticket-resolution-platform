@@ -1,0 +1,49 @@
+pipeline {
+    agent any
+
+    environment {
+        APP_ENV = 'Devlopment_environment'
+    }
+
+    stages {
+        stage('build') {
+            steps {
+                echo "Building application in ${APP_ENV}"
+            }
+        }
+
+        stage('test') {
+            agent {
+                docker { image 'python:3.11-slim' }
+            }
+            steps {
+                sh '''
+                    pwd && ls -l
+                    cd backend
+                    python -m venv .venv
+                    . .venv/bin/activate
+                    pip install --upgrade pip
+                    pip install -r requirements-dev.txt
+                    pip list
+                    python -m pytest tests -v --junitxml=test-results.xml
+                '''
+            }
+            post { 
+                always { 
+                    junit 'backend/test-results.xml'
+                    } 
+                }
+        }
+
+        stage('deploy') {
+            steps {
+                echo "Deploying the application in ${APP_ENV}"
+            }
+        }
+    }
+
+    post {
+        success { echo 'Pipeline finished successfully!' }
+        failure { echo 'Pipeline failed. Check the console output.' }
+    }
+}
