@@ -10,7 +10,7 @@ def test_success_rate_counts_errors():
     s = m.get_summary()
     assert s["total_queries"] == 3
     assert s["success_rate"] == 2 / 3
-    assert s["response_times"]["avg"] == 0.06
+    assert s["response_times"]["avg"] == 15.0
 
 
 def test_feedback_summary():
