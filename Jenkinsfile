@@ -25,9 +25,14 @@ pipeline {
                     pip install --upgrade pip
                     pip install -r requirements-dev.txt
                     pip list
-                    python -m pytest tests -v
+                    python -m pytest tests -v --junitxml=test-results.xml
                 '''
             }
+            post { 
+                always { 
+                    junit 'backend/test-results.xml'
+                    } 
+                }
         }
 
         stage('deploy') {
