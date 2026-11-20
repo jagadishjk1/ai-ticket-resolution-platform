@@ -25,6 +25,7 @@ pipeline {
                     pip install --upgrade pip
                     pip install -r requirements-dev.txt
                     pip list
+                    python -m pytest tests -v
                 '''
             }
         }
