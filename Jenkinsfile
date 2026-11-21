@@ -9,7 +9,7 @@ pipeline {
     stages {
         stage('build') {
             steps {
-                sh "Building ${APP_NAME}, build number ${BUILD_NUMBER}"
+                sh "echo Building $APP_NAME, build number $BUILD_NUMBER"
                 sh 'env | sort'
             }
         }
