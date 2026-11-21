@@ -51,7 +51,7 @@ pipeline {
 
         stage('deploy') {
             steps {
-                sh "Deploying $APP_NAME version ${params.VERSION} to ${params.ENVIRONMENT}"
+                sh "echo Deploying $APP_NAME version ${params.VERSION} to ${params.ENVIRONMENT}"
             }
         }
     }
