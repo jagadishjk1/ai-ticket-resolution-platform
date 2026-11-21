@@ -29,6 +29,7 @@ pipeline {
                 APP_ENV = 'qa-techgenie'
             }
             steps {
+                sh "echo Tests-runs: ${params.RUN_TESTS}"
                 sh '''
                     pwd && ls -l
                     cd backend
@@ -37,7 +38,6 @@ pipeline {
                     pip install --upgrade pip
                     pip install -r requirements-dev.txt
                     pip list
-                    echo Tests-runs: ${params.RUN_TESTS}
                     python -m pytest tests -v --junitxml=test-results.xml
                     echo $APP_ENV
                 '''
