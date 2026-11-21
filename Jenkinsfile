@@ -22,10 +22,8 @@ pipeline {
 
         stage('test') {
             when {
-                allOf{
                     beforeAgent true
                     expression { params.RUN_TESTS }
-                }
             }
 
             agent {
@@ -58,9 +56,7 @@ pipeline {
 
         stage('smoke-check') {
             when {
-                anyOf {
-                expression { params.ENVIRONMENT in ['STAGING-QA', 'PRODUCTION'] }
-                }            
+                expression { params.ENVIRONMENT in ['STAGING-QA', 'PRODUCTION'] }          
             }
             
             agent {
