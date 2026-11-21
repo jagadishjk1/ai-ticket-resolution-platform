@@ -16,7 +16,6 @@ pipeline {
         stage('build') {
             steps {
                 sh "echo Building $APP_NAME version ${params.VERSION} for ${params.ENVIRONMENT}"
-                sh 'env | sort'
             }
         }
 
@@ -56,6 +55,7 @@ pipeline {
 
         stage('smoke-check') {
             when {
+                beforeAgent true
                 expression { params.ENVIRONMENT in ['STAGING-QA', 'PRODUCTION'] }          
             }
             
