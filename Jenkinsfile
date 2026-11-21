@@ -4,6 +4,7 @@ pipeline {
     environment {
         APP_ENV = 'Devlopment_environment'
         APP_NAME = 'ticketgenie'
+        RAG=credentials('demo-registry')
     }
 
     parameters {
@@ -13,6 +14,17 @@ pipeline {
 
     }
     stages {
+
+        stage('secrets-demo') {
+            sh 'echo Username: $RAG_USR'
+            sh 'echo Password: $RAG_PSW'
+
+            withCredentials([string(credentialsId: 'demo-api-key', variable: 'TOKEN')]) {
+                sh 'echo using the token'
+            }
+        }
+
+
         stage('build') {
             steps {
                 sh "echo Building $APP_NAME version ${params.VERSION} for ${params.ENVIRONMENT}"
