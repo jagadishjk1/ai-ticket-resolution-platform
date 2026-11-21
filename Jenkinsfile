@@ -19,7 +19,7 @@ pipeline {
             }
 
             environment {
-                APP_ENV = 'qa'
+                APP_ENV = 'qa-techgenie'
             }
             steps {
                 sh '''
