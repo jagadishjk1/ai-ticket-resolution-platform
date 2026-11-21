@@ -2,13 +2,14 @@ pipeline {
     agent any
 
     environment {
-        APP_ENV = 'ticketgenie'
+        APP_ENV = 'Devlopment_environment'
+        APP_NAME = 'ticketgenie'
     }
 
     stages {
         stage('build') {
             steps {
-                sh 'Building ${APP_ENV}, build number ${BUILD_NUMBER}'
+                sh 'Building ${APP_NAME}, build number ${BUILD_NUMBER}'
                 sh 'env | sort'
             }
         }
