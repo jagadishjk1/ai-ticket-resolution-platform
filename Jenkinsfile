@@ -16,11 +16,14 @@ pipeline {
     stages {
 
         stage('secrets-demo') {
-            sh 'echo Username: $RAG_USR'
-            sh 'echo Password: $RAG_PSW'
+            steps {
+                sh 'echo Username: $RAG_USR'
+                sh 'echo Password: $RAG_PSW'
 
-            withCredentials([string(credentialsId: 'demo-api-key', variable: 'TOKEN')]) {
+                withCredentials([string(credentialsId: 'demo-api-key', variable: 'TOKEN')]) {
                 sh 'echo using the token'
+            }
+
             }
         }
 
