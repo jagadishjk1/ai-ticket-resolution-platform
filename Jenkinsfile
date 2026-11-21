@@ -6,10 +6,16 @@ pipeline {
         APP_NAME = 'ticketgenie'
     }
 
+    parameters {
+        choice(name:'ENVIRONMENT', choices:['DEV', 'STAGING-QA', 'PRODUCTION'], description: 'Choose the correct Enviroment')
+        string(name:'VERSION', defaultvalue:'1.0', description: 'Version Build')
+        booleanparam(name: 'RUN_TESTS', defaultvalue: true, description: 'Run Tests?')
+
+    }
     stages {
         stage('build') {
             steps {
-                sh "echo Building $APP_NAME, build number $BUILD_NUMBER"
+                sh "echo Building $APP_NAME version ${params.VERSION} for ${params.ENVIRONMENT}"
                 sh 'env | sort'
             }
         }
@@ -31,6 +37,7 @@ pipeline {
                     pip install --upgrade pip
                     pip install -r requirements-dev.txt
                     pip list
+                    echo Tests-runs: ${params.RUN_TESTS}
                     python -m pytest tests -v --junitxml=test-results.xml
                     echo $APP_ENV
                 '''
@@ -44,7 +51,8 @@ pipeline {
 
         stage('deploy') {
             steps {
-                echo "Deploying the application in ${APP_ENV}"
+                Deploying ticketgenie version 1.0 to dev
+                sh "Deploying $APP_NAME version ${params.VERSION} to ${params.ENVIRONMENT}"
             }
         }
     }
