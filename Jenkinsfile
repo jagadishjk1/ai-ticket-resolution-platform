@@ -32,7 +32,7 @@ pipeline {
                     pip install -r requirements-dev.txt
                     pip list
                     python -m pytest tests -v --junitxml=test-results.xml
-                    echo "${APP_ENV}"
+                    echo $APP_ENV
                 '''
             }
             post { 
