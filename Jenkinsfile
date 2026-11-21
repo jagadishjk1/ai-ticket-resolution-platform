@@ -21,7 +21,7 @@ pipeline {
                 sh 'echo Password: $RAG_PSW'
 
                 withCredentials([string(credentialsId: 'demo-api-key', variable: 'TOKEN')]) {
-                sh 'echo using the token'
+                sh 'echo using the $TOKEN'
                 }
             }
         }
