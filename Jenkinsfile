@@ -9,7 +9,7 @@ pipeline {
     stages {
         stage('build') {
             steps {
-                sh 'Building ${APP_NAME}, build number ${BUILD_NUMBER}'
+                sh "Building ${APP_NAME}, build number ${BUILD_NUMBER}"
                 sh 'env | sort'
             }
         }
@@ -32,7 +32,7 @@ pipeline {
                     pip install -r requirements-dev.txt
                     pip list
                     python -m pytest tests -v --junitxml=test-results.xml
-                    echo '${APP_ENV}'
+                    echo "${APP_ENV}"
                 '''
             }
             post { 
