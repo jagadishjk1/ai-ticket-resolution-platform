@@ -22,8 +22,7 @@ pipeline {
 
                 withCredentials([string(credentialsId: 'demo-api-key', variable: 'TOKEN')]) {
                 sh 'echo using the token'
-            }
-
+                }
             }
         }
 
