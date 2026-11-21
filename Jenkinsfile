@@ -21,6 +21,13 @@ pipeline {
         }
 
         stage('test') {
+            when {
+                allOf{
+                    beforeAgent true
+                    expression { params.RUN_TESTS }
+                }
+            }
+
             agent {
                 docker { image 'python:3.11-slim' }
             }
@@ -47,6 +54,34 @@ pipeline {
                     junit 'backend/test-results.xml'
                     } 
                 }
+        }
+
+        stage('smoke-check') {
+            when {
+                anyOf {
+                expression { params.ENVIRONMENT in ['STAGING-QA', 'PRODUCTION'] }
+                }            
+            }
+            
+            agent {
+                docker { image 'python:3.11-slim' }
+            }
+
+            environment {
+                APP_ENV = 'qa-techgenie'
+            }
+            steps {
+                sh '''
+                    cd backend
+                    python -m venv .venv
+                    . .venv/bin/activate
+                    pip install --upgrade pip
+                    pip install -r requirements-dev.txt
+                    pip list
+                    python -m pytest tests -v --junitxml=test-results.xml
+                    echo $APP_ENV
+                '''
+            }
         }
 
         stage('deploy') {
