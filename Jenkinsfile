@@ -51,7 +51,6 @@ pipeline {
 
         stage('deploy') {
             steps {
-                Deploying ticketgenie version 1.0 to dev
                 sh "Deploying $APP_NAME version ${params.VERSION} to ${params.ENVIRONMENT}"
             }
         }
