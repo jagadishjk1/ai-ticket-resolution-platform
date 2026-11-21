@@ -8,8 +8,8 @@ pipeline {
 
     parameters {
         choice(name:'ENVIRONMENT', choices:['DEV', 'STAGING-QA', 'PRODUCTION'], description: 'Choose the correct Enviroment')
-        string(name:'VERSION', defaultvalue:'1.0', description: 'Version Build')
-        booleanparam(name: 'RUN_TESTS', defaultvalue: true, description: 'Run Tests?')
+        string(name:'VERSION', defaultValue:'1.0', description: 'Version Build')
+        booleanParam(name: 'RUN_TESTS', defaultValue: true, description: 'Run Tests?')
 
     }
     stages {
