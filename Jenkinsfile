@@ -2,19 +2,24 @@ pipeline {
     agent any
 
     environment {
-        APP_ENV = 'Devlopment_environment'
+        APP_ENV = 'ticketgenie'
     }
 
     stages {
         stage('build') {
             steps {
-                echo "Building application in ${APP_ENV}"
+                sh 'Building ${APP_ENV}, build number ${BUILD_NUMBER}'
+                sh 'env | sort'
             }
         }
 
         stage('test') {
             agent {
                 docker { image 'python:3.11-slim' }
+            }
+
+            environment {
+                APP_ENV = 'qa'
             }
             steps {
                 sh '''
@@ -26,6 +31,7 @@ pipeline {
                     pip install -r requirements-dev.txt
                     pip list
                     python -m pytest tests -v --junitxml=test-results.xml
+                    echo '${APP_ENV}'
                 '''
             }
             post { 
